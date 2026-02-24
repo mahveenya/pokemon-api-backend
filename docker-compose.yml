@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:18
+    container_name: pokemon_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: pokemon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://admin:admin@db:5432/pokemon_db
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "
+      alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+    volumes:
+      - type: bind
+        source: ./backend/alembic/versions
+        target: /backend/alembic/versions
+
+volumes:
+  postgres_data:

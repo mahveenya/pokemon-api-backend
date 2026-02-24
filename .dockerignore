@@ -1,9 +1,7 @@
-node_modules
-.venv
+backend/.venv
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 *.swp
 .env
-alembic
