@@ -6,4 +6,3 @@ __pycache__
 *.pyd
 *.swp
 .env
-alembic

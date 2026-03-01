@@ -27,8 +27,8 @@ services:
       "
     volumes:
       - type: bind
-        source: ./backend/alembic/versions
-        target: /backend/alembic/versions
+        source: ./backend/alembic
+        target: /backend/alembic
 
 volumes:
   postgres_data:
