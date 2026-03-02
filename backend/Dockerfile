@@ -8,10 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   netcat-openbsd \
   && rm -rf /var/lib/apt/lists/*
 
+COPY pyproject.toml uv.lock ./
+RUN pip install uv && uv sync --frozen
+
+ENV PATH="/backend/.venv/bin:$PATH"
 
 COPY . .
-RUN pip install --upgrade pip \
-  && pip install -r requirements.txt
 
 EXPOSE 8000
 
