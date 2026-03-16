@@ -17,4 +17,5 @@ async def get_ability_db_models_by_pokemon_id(
         .join(PokemonAbilityModel)
         .where(PokemonAbilityModel.pokemon_id == pokemon_id)
     )
-    return await session.execute(stmt).scalars().all()
+    result = await session.execute(stmt)
+    return result.scalars().all()
