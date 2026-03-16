@@ -13,8 +13,5 @@ echo "Database is up."
 echo "Running migrations..."
 alembic upgrade head
 
-echo "Prepopulating database..."
-python -m scripts.prepopulate
-
 echo "Starting server..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000
