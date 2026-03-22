@@ -1,15 +1,6 @@
 from app.schemas.base_schema import BaseSchema
 from app.schemas.common import NamedAPIResourceSchema
-
-
-class LanguageSchema(BaseSchema):
-    name: str
-
-
-class EffectSchema(BaseSchema):
-    effect: str
-    short_effect: str
-    language: LanguageSchema
+from app.schemas.effect_schema import EffectSchema
 
 
 class AbilitySchema(BaseSchema):

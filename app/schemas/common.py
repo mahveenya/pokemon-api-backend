@@ -1,6 +1,10 @@
 from app.schemas.base_schema import BaseSchema
 
 
+class LanguageSchema(BaseSchema):
+    name: str
+
+
 class NamedAPIResourceSchema(BaseSchema):
     name: str
     url: str
