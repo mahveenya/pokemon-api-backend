@@ -6,3 +6,4 @@ __pycache__
 *.pyd
 *.swp
 .env
+.ruff_cache
