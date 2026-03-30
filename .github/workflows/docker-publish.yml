@@ -23,4 +23,5 @@ jobs:
           context: .
           push: true
           tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/pokemon-api-backend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/pokemon-api-backend:${{ github.ref_name }}
