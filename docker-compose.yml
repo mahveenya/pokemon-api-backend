@@ -23,7 +23,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./app/db/seed.sql:/seed.sql
+      - ./alembic/seeds/seed.sql:/seed.sql
     entrypoint:
       ["psql", "-h", "db", "-U", "admin", "-d", "pokemon_db", "-f", "/seed.sql"]
     environment:
