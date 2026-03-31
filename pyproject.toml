@@ -1,7 +1,7 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "My backend implementation of the pokemon api"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -20,9 +20,9 @@ dev = [
 ]
 
 [tool.ruff]
-line-length = 88          # Match Black's default
+line-length = 88          
 target-version = "py312"
-src = ["app"]    # Help Ruff resolve first-party imports
+src = ["app"]    
 
 [tool.ruff.lint]
 select = [
