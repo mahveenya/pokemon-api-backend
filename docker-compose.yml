@@ -1,4 +1,5 @@
 name: pokemon-api
+
 services:
   db:
     image: postgres:18
@@ -17,10 +18,31 @@ services:
       interval: 5s
       retries: 5
 
+  backend:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --quiet --tries=1 --spider http://localhost:8000/health || exit 1",
+        ]
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    environment:
+      DATABASE_URL: postgresql+asyncpg://admin:admin@db:5432/pokemon_db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./alembic:/app/alembic
+
   db-seed:
     image: postgres:18
     depends_on:
-      db:
+      backend:
         condition: service_healthy
     volumes:
       - ./alembic/seeds/seed.sql:/seed.sql
@@ -28,20 +50,6 @@ services:
       ["psql", "-h", "db", "-U", "admin", "-d", "pokemon_db", "-f", "/seed.sql"]
     environment:
       PGPASSWORD: admin
-
-  backend:
-    build: .
-    depends_on:
-      db-seed:
-        condition: service_completed_successfully
-    environment:
-      DATABASE_URL: postgresql+asyncpg://admin:admin@db:5432/pokemon_db
-    ports:
-      - "8000:8000"
-    volumes:
-      - type: bind
-        source: ./alembic
-        target: /app/alembic
 
 volumes:
   postgres_data:

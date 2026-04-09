@@ -1,11 +1,7 @@
-DOCKER_COMPOSE_FILE=./docker-compose.yml
+COMPOSE_FILE = docker-compose.yml
 
 up:
-	docker compose -f $(DOCKER_COMPOSE_FILE) up -d --build
+	docker compose -f $(COMPOSE_FILE) up -d --build
 down:
-	docker compose -f $(DOCKER_COMPOSE_FILE) down
-stop:
-	docker compose -f $(DOCKER_COMPOSE_FILE) stop
-start:
-	docker compose -f $(DOCKER_COMPOSE_FILE) start
+	docker compose -f $(COMPOSE_FILE) down -v
 rebuild: down up
