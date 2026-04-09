@@ -10,6 +10,11 @@ from app.services.pokemon_service import get_pokemon_by_id, get_pokemons_list
 app = FastAPI()
 
 
+@app.head("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/pokemon", response_model=PokemonListSchema)
 async def list_pokemons(
     offset: int = 0,
