@@ -26,7 +26,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pokemon-api-backend:${{ github.ref_name }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/pokemon-api-backend:${{ github.ref_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/pokemon-api-backend:latest
 
   dispatch-tests:
     runs-on: ubuntu-latest
@@ -38,4 +40,4 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TEST_REPO_TOKEN }}" \
             https://api.github.com/repos/mahveenya/qa-pokemon-api-backend/dispatches \
-            -d '{"event_type":"run-api-tests", "client_payload":{"branch":"${{ github.ref_name }}"}}'
+            -d '{"event_type":"run-api-tests", "client_payload":{"branch":"latest"}}'
