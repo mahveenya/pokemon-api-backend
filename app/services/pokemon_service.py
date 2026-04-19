@@ -24,7 +24,7 @@ async def get_pokemon_list(session, offset, limit) -> PokemonListSchema:
     results = [PokemonNamedAPIResourceSchema.from_model(p) for p in pokemons]
 
     next_url, previous_url = build_pagination(
-        Endpoints.POKEMON_LIST, total, offset, limit
+        Endpoints.POKEMON_BASE, total, offset, limit
     )
 
     return PokemonListSchema(
