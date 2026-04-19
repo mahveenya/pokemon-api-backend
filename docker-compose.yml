@@ -45,7 +45,7 @@ services:
       backend:
         condition: service_healthy
     volumes:
-      - ./alembic/seeds/seed.sql:/seed.sql
+      - ./seed/seed.sql:/seed.sql
     entrypoint:
       ["psql", "-h", "db", "-U", "admin", "-d", "pokemon_db", "-f", "/seed.sql"]
     environment:
