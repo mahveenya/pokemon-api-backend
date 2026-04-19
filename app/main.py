@@ -11,7 +11,7 @@ from app.services.pokemon_service import get_pokemon_by_id, get_pokemon_list
 app = FastAPI()
 
 
-@app.head(Endpoints.HEALTH_CHECK)
+@app.get(Endpoints.HEALTH_CHECK)
 async def health_check():
     return {"status": "ok"}
 
