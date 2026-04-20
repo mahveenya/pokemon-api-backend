@@ -12,7 +12,7 @@ def build_pagination(base_url, total, offset, limit):
 
 
 def build_base_url(request):
-    port = request.headers.get("x-forwarded-port", "")
+    # stripping port for simplicity,
+    # assuming API is served on standard ports (80/443)
     host = request.headers.get("host", "").split(":")[0]
-    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
-    return f"{scheme}://{host}:{port}" if port else f"{scheme}://{host}"
+    return f"http://{host}"
