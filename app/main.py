@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.routers.ability_router import router as ability_router
-from app.routers.pokemot_router import router as pokemon_router
+from app.routers.pokemon_router import router as pokemon_router
 
 app = FastAPI()
 app.include_router(pokemon_router)
