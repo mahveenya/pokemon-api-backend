@@ -39,5 +39,5 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TEST_REPO_TOKEN }}" \
-            https://api.github.com/repos/mahveenya/qa-pokemon-api-backend/dispatches \
+            https://api.github.com/repos/mahveenya/pokemon-api-backend-tests/dispatches \
             -d '{"event_type":"run-api-tests", "client_payload":{"branch":"latest"}}'
