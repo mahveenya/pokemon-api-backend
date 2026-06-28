@@ -1,4 +1,8 @@
-from app.schemas.ability_schema import AbilityInfoSchema
+from typing import Annotated
+
+from pydantic import Field
+
+from app.schemas.ability_schema import AbilityCreateSchema, AbilityInfoSchema
 from app.schemas.base_schema import BaseSchema
 from app.schemas.common import NamedAPIResourceSchema
 
@@ -14,3 +18,8 @@ class PokemonListSchema(BaseSchema):
     next: str | None
     previous: str | None
     results: list[NamedAPIResourceSchema] = []  # noqa: RUF012
+
+
+class PokemonCreateSchema(BaseSchema):
+    name: str
+    abilities: Annotated[list[AbilityCreateSchema], Field(min_length=1)]

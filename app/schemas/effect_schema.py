@@ -6,3 +6,9 @@ class EffectSchema(BaseSchema):
     effect: str
     short_effect: str
     language: LanguageSchema
+
+
+class EffectCreateSchema(BaseSchema):
+    effect: str | None
+    short_effect: str
+    language: LanguageSchema
