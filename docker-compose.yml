@@ -2,8 +2,8 @@ name: pokemon-api
 
 services:
   db:
+    container_name: db
     image: postgres:18
-    container_name: pokemon_db
     restart: always
     environment:
       POSTGRES_USER: admin
@@ -19,6 +19,7 @@ services:
       retries: 5
 
   backend:
+    container_name: backend
     build: .
     depends_on:
       db:
