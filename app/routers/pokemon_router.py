@@ -1,11 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request, status
 
 from app.constants import Endpoints
 from app.db.session import get_session
-from app.schemas.pokemon_schema import PokemonListSchema, PokemonSchema
-from app.services.pokemon_service import get_pokemon_by_id, get_pokemon_list
+from app.schemas.pokemon_schema import (
+    PokemonCreateSchema,
+    PokemonListSchema,
+    PokemonSchema,
+)
+from app.services.pokemon_service import (
+    create_pokemon,
+    get_pokemon_list,
+)
+from app.services.pokemon_service import (
+    get_pokemon as get_pokemon_service,
+)
 
 router = APIRouter(prefix=f"{Endpoints.POKEMON_BASE}", tags=["pokemon"])
+
+
+@router.post(
+    "",
+    response_model=PokemonSchema,
+    status_code=status.HTTP_201_CREATED,
+    responses={409: {"description": "Pokemon or ability name already exists"}},
+)
+async def create_pokemon_endpoint(
+    request: Request,
+    payload: PokemonCreateSchema,
+    session=Depends(get_session),
+) -> PokemonSchema:
+    return await create_pokemon(session, payload, request)
 
 
 @router.get("", response_model=PokemonListSchema)
@@ -29,12 +53,4 @@ async def list_pokemons(
 async def get_pokemon(
     request: Request, id_or_name: str, session=Depends(get_session)
 ) -> PokemonSchema:
-    if id_or_name.isdigit():
-        pokemon = await get_pokemon_by_id(session, int(id_or_name), request)
-        if pokemon is None:
-            raise HTTPException(status_code=404, detail="Pokemon not found")
-        return pokemon
-    else:
-        raise HTTPException(
-            status_code=501, detail="Search by name is not implemented yet"
-        )
+    return await get_pokemon_service(session, id_or_name, request)
