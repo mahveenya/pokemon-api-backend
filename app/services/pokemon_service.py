@@ -21,11 +21,11 @@ async def get_pokemon_list(session, offset, limit, request) -> PokemonListSchema
     total = await count_pokemon_db_models(session)
     results = [
         NamedAPIResourceSchema.from_model(
-            p, request.url_path_for("get_pokemon", id_or_name=p.id)
+            p, request.app.url_path_for("get_pokemon", id_or_name=p.id)
         )
         for p in pokemons
     ]
-    list_path = request.url_path_for("list_pokemons")
+    list_path = request.app.url_path_for("list_pokemons")
     next_url, previous_url = build_pagination(list_path, total, offset, limit)
 
     return PokemonListSchema(
@@ -44,7 +44,7 @@ async def get_pokemon_by_id(session, pokemon_id, request) -> PokemonSchema | Non
     abilities = await get_ability_db_models_by_pokemon_id(session, pokemon_id)
     abilities_resources = [
         NamedAPIResourceSchema.from_model(
-            a, request.url_path_for("get_ability", id_or_name=a.id)
+            a, request.app.url_path_for("get_ability", id_or_name=a.id)
         )
         for a in abilities
     ]
