@@ -10,8 +10,8 @@ class NamedAPIResourceSchema(BaseSchema):
     url: str
 
     @classmethod
-    def from_model(cls, model, base_url):
+    def from_model(cls, model, url):
         return cls(
             name=model.name,
-            url=f"{base_url}/{model.id}",
+            url=url,
         )
