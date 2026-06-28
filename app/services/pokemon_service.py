@@ -1,7 +1,17 @@
-from app.repositories.ability_repository import get_ability_db_models_by_pokemon_id
+from app.exceptions import (
+    FeatureNotImplementedError,
+    ResourceConflictError,
+    ResourceNotFoundError,
+)
+from app.repositories.ability_repository import (
+    get_ability_db_model_by_name,
+    get_ability_db_models_by_pokemon_id,
+)
 from app.repositories.pokemon_repository import (
     count_pokemon_db_models,
+    create_pokemon_db_model,
     get_pokemon_db_model_by_id,
+    get_pokemon_db_model_by_name,
     get_pokemon_db_models,
 )
 from app.schemas.ability_schema import AbilityInfoSchema
@@ -36,6 +46,16 @@ async def get_pokemon_list(session, offset, limit, request) -> PokemonListSchema
     )
 
 
+async def get_pokemon(session, id_or_name, request) -> PokemonSchema:
+    if not id_or_name.isdigit():
+        raise FeatureNotImplementedError("Search by name is not implemented yet")
+
+    pokemon = await get_pokemon_by_id(session, int(id_or_name), request)
+    if pokemon is None:
+        raise ResourceNotFoundError("Pokemon not found")
+    return pokemon
+
+
 async def get_pokemon_by_id(session, pokemon_id, request) -> PokemonSchema | None:
     pokemon = await get_pokemon_db_model_by_id(session, pokemon_id)
     if not pokemon:
@@ -55,3 +75,19 @@ async def get_pokemon_by_id(session, pokemon_id, request) -> PokemonSchema | Non
         name=pokemon.name,
         abilities=abilities_info,
     )
+
+
+async def create_pokemon(session, data, request) -> PokemonSchema:
+    if await get_pokemon_db_model_by_name(session, data.name):
+        raise ResourceConflictError(f"Pokemon '{data.name}' already exists")
+
+    for ability in data.abilities:
+        if await get_ability_db_model_by_name(session, ability.name):
+            raise ResourceConflictError(f"Ability '{ability.name}' already exists")
+
+    abilities = [a.model_dump() for a in data.abilities]
+    pokemon = await create_pokemon_db_model(session, data.name, abilities)
+    pokemon_schema = await get_pokemon_by_id(session, pokemon.id, request)
+    if pokemon_schema is None:
+        raise RuntimeError("Failed to retrieve created Pokemon")
+    return pokemon_schema
