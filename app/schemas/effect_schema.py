@@ -3,7 +3,7 @@ from app.schemas.common import LanguageSchema
 
 
 class EffectSchema(BaseSchema):
-    effect: str
+    effect: str | None
     short_effect: str
     language: LanguageSchema
 
