@@ -1,12 +1,27 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from app.constants import Endpoints
 from app.db.session import get_session
-from app.schemas.ability_schema import AbilitySchema, AbilityUpdateSchema
+from app.schemas.ability_schema import (
+    AbilityListSchema,
+    AbilitySchema,
+    AbilityUpdateSchema,
+)
 from app.services.ability_service import get_ability as get_ability_service
-from app.services.ability_service import update_ability
+from app.services.ability_service import get_ability_list, update_ability
 
 router = APIRouter(prefix=Endpoints.ABILITY_BASE, tags=["ability"])
+
+
+@router.get("", response_model=AbilityListSchema)
+async def list_abilities(
+    request: Request,
+    offset: int = 0,
+    limit: int = 20,
+    search: str | None = None,
+    session=Depends(get_session),
+) -> AbilityListSchema:
+    return await get_ability_list(session, offset, limit, request, search)
 
 
 @router.get(

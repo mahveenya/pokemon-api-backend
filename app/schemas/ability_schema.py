@@ -13,6 +13,13 @@ class AbilitySchema(BaseSchema):
     effect_entries: list[EffectSchema]
 
 
+class AbilityListSchema(BaseSchema):
+    count: int
+    next: str | None
+    previous: str | None
+    results: list[NamedAPIResourceSchema] = []  # noqa: RUF012
+
+
 class AbilityInfoSchema(BaseSchema):
     ability: NamedAPIResourceSchema
 

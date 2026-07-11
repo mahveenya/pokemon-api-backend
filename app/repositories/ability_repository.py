@@ -1,7 +1,23 @@
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
 from app.db.models.ability_model import AbilityModel
 from app.db.models.pokemon_ability_model import PokemonAbilityModel
+
+
+async def get_ability_db_models(session, offset, limit, search=None):
+    stmt = select(AbilityModel).order_by(AbilityModel.id)
+    if search:
+        stmt = stmt.where(AbilityModel.name.ilike(f"%{search}%"))
+    stmt = stmt.offset(offset).limit(limit)
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
+async def count_ability_db_models(session, search=None):
+    stmt = select(func.count()).select_from(AbilityModel)
+    if search:
+        stmt = stmt.where(AbilityModel.name.ilike(f"%{search}%"))
+    return await session.scalar(stmt)
 
 
 async def get_ability_db_model_by_id(session, ability_id) -> AbilityModel | None:
