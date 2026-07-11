@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from app.schemas.ability_schema import AbilityCreateSchema, AbilityInfoSchema
+from app.schemas.ability_schema import AbilityInfoSchema
 from app.schemas.base_schema import BaseSchema
 from app.schemas.common import NamedAPIResourceSchema
 
@@ -22,8 +22,9 @@ class PokemonListSchema(BaseSchema):
 
 class PokemonCreateSchema(BaseSchema):
     name: str
-    abilities: Annotated[list[AbilityCreateSchema], Field(min_length=1)]
+    ability_ids: Annotated[list[int], Field(min_length=1)]
 
 
 class PokemonUpdateSchema(BaseSchema):
     name: str | None = None
+    ability_ids: list[int] | None = None

@@ -32,6 +32,12 @@ async def get_ability_db_model_by_name(session, name) -> AbilityModel | None:
     return result.scalar_one_or_none()
 
 
+async def get_ability_db_models_by_ids(session, ids) -> list[AbilityModel]:
+    stmt = select(AbilityModel).where(AbilityModel.id.in_(ids))
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
 async def get_ability_db_models_by_pokemon_id(
     session, pokemon_id
 ) -> list[AbilityModel]:
