@@ -1,6 +1,7 @@
 from sqlalchemy import delete, func, select, update
+from sqlalchemy.orm import selectinload
 
-from app.db.models import AbilityModel, PokemonModel
+from app.db.models import PokemonModel
 
 
 async def get_pokemon_db_models(session, offset, limit, search=None):
@@ -31,16 +32,9 @@ async def get_pokemon_db_model_by_name(session, name):
     return result.scalar_one_or_none()
 
 
-async def create_pokemon_db_model(session, name, abilities) -> PokemonModel:
+async def create_pokemon_db_model(session, name, ability_models) -> PokemonModel:
     pokemon = PokemonModel(name=name)
-
-    for ability in abilities:
-        pokemon.abilities.append(
-            AbilityModel(
-                name=ability["name"],
-                effect_entries=ability["effect_entries"],
-            )
-        )
+    pokemon.abilities.extend(ability_models)
 
     session.add(pokemon)
     try:
@@ -50,6 +44,21 @@ async def create_pokemon_db_model(session, name, abilities) -> PokemonModel:
         raise
     await session.refresh(pokemon)
     return pokemon
+
+
+async def set_pokemon_abilities(session, pokemon_id, ability_models) -> None:
+    stmt = (
+        select(PokemonModel)
+        .where(PokemonModel.id == pokemon_id)
+        .options(selectinload(PokemonModel.abilities))
+    )
+    pokemon = (await session.execute(stmt)).scalar_one()
+    pokemon.abilities = list(ability_models)
+    try:
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
 
 
 async def update_pokemon_db_model(session, pokemon_id, values) -> None:

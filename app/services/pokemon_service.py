@@ -4,7 +4,7 @@ from app.exceptions import (
     ResourceNotFoundError,
 )
 from app.repositories.ability_repository import (
-    get_ability_db_model_by_name,
+    get_ability_db_models_by_ids,
     get_ability_db_models_by_pokemon_id,
 )
 from app.repositories.pokemon_repository import (
@@ -14,6 +14,7 @@ from app.repositories.pokemon_repository import (
     get_pokemon_db_model_by_id,
     get_pokemon_db_model_by_name,
     get_pokemon_db_models,
+    set_pokemon_abilities,
     update_pokemon_db_model,
 )
 from app.schemas.ability_schema import AbilityInfoSchema
@@ -81,16 +82,19 @@ async def get_pokemon_by_id(session, pokemon_id, request) -> PokemonSchema | Non
     )
 
 
+async def resolve_ability_models(session, ability_ids):
+    ability_models = await get_ability_db_models_by_ids(session, ability_ids)
+    if len(ability_models) != len(set(ability_ids)):
+        raise ResourceNotFoundError("One or more abilities not found")
+    return ability_models
+
+
 async def create_pokemon(session, data, request) -> PokemonSchema:
     if await get_pokemon_db_model_by_name(session, data.name):
         raise ResourceConflictError(f"Pokemon '{data.name}' already exists")
 
-    for ability in data.abilities:
-        if await get_ability_db_model_by_name(session, ability.name):
-            raise ResourceConflictError(f"Ability '{ability.name}' already exists")
-
-    abilities = [a.model_dump() for a in data.abilities]
-    pokemon = await create_pokemon_db_model(session, data.name, abilities)
+    ability_models = await resolve_ability_models(session, data.ability_ids)
+    pokemon = await create_pokemon_db_model(session, data.name, ability_models)
     pokemon_schema = await get_pokemon_by_id(session, pokemon.id, request)
     if pokemon_schema is None:
         raise RuntimeError("Failed to retrieve created Pokemon")
@@ -107,9 +111,11 @@ async def update_pokemon(session, pokemon_id: int, data, request) -> PokemonSche
         existing = await get_pokemon_db_model_by_name(session, values["name"])
         if existing and existing.id != pokemon_id:
             raise ResourceConflictError(f"Pokemon '{values['name']}' already exists")
+        await update_pokemon_db_model(session, pokemon_id, {"name": values["name"]})
 
-    if values:
-        await update_pokemon_db_model(session, pokemon_id, values)
+    if "ability_ids" in values:
+        ability_models = await resolve_ability_models(session, values["ability_ids"])
+        await set_pokemon_abilities(session, pokemon_id, ability_models)
 
     pokemon_schema = await get_pokemon_by_id(session, pokemon_id, request)
     if pokemon_schema is None:
