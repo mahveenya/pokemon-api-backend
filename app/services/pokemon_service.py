@@ -10,6 +10,7 @@ from app.repositories.ability_repository import (
 from app.repositories.pokemon_repository import (
     count_pokemon_db_models,
     create_pokemon_db_model,
+    delete_pokemon_db_model,
     get_pokemon_db_model_by_id,
     get_pokemon_db_model_by_name,
     get_pokemon_db_models,
@@ -91,3 +92,10 @@ async def create_pokemon(session, data, request) -> PokemonSchema:
     if pokemon_schema is None:
         raise RuntimeError("Failed to retrieve created Pokemon")
     return pokemon_schema
+
+
+async def delete_pokemon(session, pokemon_id: int) -> None:
+    if await get_pokemon_db_model_by_id(session, pokemon_id) is None:
+        raise ResourceNotFoundError("Pokemon not found")
+
+    await delete_pokemon_db_model(session, pokemon_id)

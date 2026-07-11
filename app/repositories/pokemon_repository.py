@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from app.db.models import AbilityModel, PokemonModel
 
@@ -45,3 +45,13 @@ async def create_pokemon_db_model(session, name, abilities) -> PokemonModel:
         raise
     await session.refresh(pokemon)
     return pokemon
+
+
+async def delete_pokemon_db_model(session, pokemon_id) -> None:
+    stmt = delete(PokemonModel).where(PokemonModel.id == pokemon_id)
+    await session.execute(stmt)
+    try:
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise

@@ -9,6 +9,7 @@ from app.schemas.pokemon_schema import (
 )
 from app.services.pokemon_service import (
     create_pokemon,
+    delete_pokemon,
     get_pokemon_list,
 )
 from app.services.pokemon_service import (
@@ -54,3 +55,14 @@ async def get_pokemon(
     request: Request, id_or_name: str, session=Depends(get_session)
 ) -> PokemonSchema:
     return await get_pokemon_service(session, id_or_name, request)
+
+
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Pokemon not found"},
+    },
+)
+async def delete_pokemon_endpoint(id: int, session=Depends(get_session)) -> None:
+    await delete_pokemon(session, id)
