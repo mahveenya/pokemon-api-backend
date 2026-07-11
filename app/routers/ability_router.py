@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends
 
 from app.constants import Endpoints
 from app.db.session import get_session
-from app.schemas.ability_schema import AbilitySchema
+from app.schemas.ability_schema import AbilitySchema, AbilityUpdateSchema
 from app.services.ability_service import get_ability as get_ability_service
+from app.services.ability_service import update_ability
 
 router = APIRouter(prefix=Endpoints.ABILITY_BASE, tags=["ability"])
 
@@ -18,3 +19,19 @@ router = APIRouter(prefix=Endpoints.ABILITY_BASE, tags=["ability"])
 )
 async def get_ability(id_or_name: str, session=Depends(get_session)) -> AbilitySchema:
     return await get_ability_service(session, id_or_name)
+
+
+@router.patch(
+    "/{id}",
+    response_model=AbilitySchema,
+    responses={
+        404: {"description": "Ability not found"},
+        409: {"description": "Ability name already exists"},
+    },
+)
+async def update_ability_endpoint(
+    id: int,
+    payload: AbilityUpdateSchema,
+    session=Depends(get_session),
+) -> AbilitySchema:
+    return await update_ability(session, id, payload)

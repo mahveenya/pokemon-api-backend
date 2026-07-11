@@ -1,16 +1,21 @@
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 
 from app.db.models import AbilityModel, PokemonModel
 
 
-async def get_pokemon_db_models(session, offset, limit):
-    stmt = select(PokemonModel).order_by(PokemonModel.id).offset(offset).limit(limit)
+async def get_pokemon_db_models(session, offset, limit, search=None):
+    stmt = select(PokemonModel).order_by(PokemonModel.id)
+    if search:
+        stmt = stmt.where(PokemonModel.name.ilike(f"%{search}%"))
+    stmt = stmt.offset(offset).limit(limit)
     result = await session.execute(stmt)
     return result.scalars().all()
 
 
-async def count_pokemon_db_models(session):
+async def count_pokemon_db_models(session, search=None):
     stmt = select(func.count()).select_from(PokemonModel)
+    if search:
+        stmt = stmt.where(PokemonModel.name.ilike(f"%{search}%"))
     return await session.scalar(stmt)
 
 
@@ -45,6 +50,16 @@ async def create_pokemon_db_model(session, name, abilities) -> PokemonModel:
         raise
     await session.refresh(pokemon)
     return pokemon
+
+
+async def update_pokemon_db_model(session, pokemon_id, values) -> None:
+    stmt = update(PokemonModel).where(PokemonModel.id == pokemon_id).values(**values)
+    await session.execute(stmt)
+    try:
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
 
 
 async def delete_pokemon_db_model(session, pokemon_id) -> None:

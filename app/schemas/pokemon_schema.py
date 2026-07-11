@@ -23,3 +23,7 @@ class PokemonListSchema(BaseSchema):
 class PokemonCreateSchema(BaseSchema):
     name: str
     abilities: Annotated[list[AbilityCreateSchema], Field(min_length=1)]
+
+
+class PokemonUpdateSchema(BaseSchema):
+    name: str | None = None

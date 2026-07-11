@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from app.db.models.ability_model import AbilityModel
 from app.db.models.pokemon_ability_model import PokemonAbilityModel
@@ -26,3 +26,13 @@ async def get_ability_db_models_by_pokemon_id(
     )
     result = await session.execute(stmt)
     return result.scalars().all()
+
+
+async def update_ability_db_model(session, ability_id, values) -> None:
+    stmt = update(AbilityModel).where(AbilityModel.id == ability_id).values(**values)
+    await session.execute(stmt)
+    try:
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
