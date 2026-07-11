@@ -6,11 +6,13 @@ from app.schemas.pokemon_schema import (
     PokemonCreateSchema,
     PokemonListSchema,
     PokemonSchema,
+    PokemonUpdateSchema,
 )
 from app.services.pokemon_service import (
     create_pokemon,
     delete_pokemon,
     get_pokemon_list,
+    update_pokemon,
 )
 from app.services.pokemon_service import (
     get_pokemon as get_pokemon_service,
@@ -38,9 +40,10 @@ async def list_pokemons(
     request: Request,
     offset: int = 0,
     limit: int = 20,
+    search: str | None = None,
     session=Depends(get_session),
 ) -> PokemonListSchema:
-    return await get_pokemon_list(session, offset, limit, request)
+    return await get_pokemon_list(session, offset, limit, request, search)
 
 
 @router.get(
@@ -55,6 +58,23 @@ async def get_pokemon(
     request: Request, id_or_name: str, session=Depends(get_session)
 ) -> PokemonSchema:
     return await get_pokemon_service(session, id_or_name, request)
+
+
+@router.patch(
+    "/{id}",
+    response_model=PokemonSchema,
+    responses={
+        404: {"description": "Pokemon not found"},
+        409: {"description": "Pokemon name already exists"},
+    },
+)
+async def update_pokemon_endpoint(
+    request: Request,
+    id: int,
+    payload: PokemonUpdateSchema,
+    session=Depends(get_session),
+) -> PokemonSchema:
+    return await update_pokemon(session, id, payload, request)
 
 
 @router.delete(

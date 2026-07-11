@@ -14,6 +14,7 @@ from app.repositories.pokemon_repository import (
     get_pokemon_db_model_by_id,
     get_pokemon_db_model_by_name,
     get_pokemon_db_models,
+    update_pokemon_db_model,
 )
 from app.schemas.ability_schema import AbilityInfoSchema
 from app.schemas.common import NamedAPIResourceSchema
@@ -24,12 +25,14 @@ from app.schemas.pokemon_schema import (
 from app.utils.helpers import build_pagination
 
 
-async def get_pokemon_list(session, offset, limit, request) -> PokemonListSchema:
-    pokemons = await get_pokemon_db_models(session, offset, limit)
+async def get_pokemon_list(
+    session, offset, limit, request, search=None
+) -> PokemonListSchema:
+    pokemons = await get_pokemon_db_models(session, offset, limit, search)
     if not pokemons:
         return PokemonListSchema(count=0, next=None, previous=None, results=[])
 
-    total = await count_pokemon_db_models(session)
+    total = await count_pokemon_db_models(session, search)
     results = [
         NamedAPIResourceSchema.from_model(
             p, request.app.url_path_for("get_pokemon", id_or_name=p.id)
@@ -37,7 +40,7 @@ async def get_pokemon_list(session, offset, limit, request) -> PokemonListSchema
         for p in pokemons
     ]
     list_path = request.app.url_path_for("list_pokemons")
-    next_url, previous_url = build_pagination(list_path, total, offset, limit)
+    next_url, previous_url = build_pagination(list_path, total, offset, limit, search)
 
     return PokemonListSchema(
         count=total,
@@ -91,6 +94,26 @@ async def create_pokemon(session, data, request) -> PokemonSchema:
     pokemon_schema = await get_pokemon_by_id(session, pokemon.id, request)
     if pokemon_schema is None:
         raise RuntimeError("Failed to retrieve created Pokemon")
+    return pokemon_schema
+
+
+async def update_pokemon(session, pokemon_id: int, data, request) -> PokemonSchema:
+    if await get_pokemon_db_model_by_id(session, pokemon_id) is None:
+        raise ResourceNotFoundError("Pokemon not found")
+
+    values = data.model_dump(exclude_unset=True)
+
+    if "name" in values:
+        existing = await get_pokemon_db_model_by_name(session, values["name"])
+        if existing and existing.id != pokemon_id:
+            raise ResourceConflictError(f"Pokemon '{values['name']}' already exists")
+
+    if values:
+        await update_pokemon_db_model(session, pokemon_id, values)
+
+    pokemon_schema = await get_pokemon_by_id(session, pokemon_id, request)
+    if pokemon_schema is None:
+        raise RuntimeError("Failed to retrieve updated Pokemon")
     return pokemon_schema
 
 

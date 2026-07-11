@@ -24,3 +24,10 @@ class AbilityInfoSchema(BaseSchema):
 class AbilityCreateSchema(BaseSchema):
     name: str
     effect_entries: Annotated[list[EffectCreateSchema], Field(min_length=1)]
+
+
+class AbilityUpdateSchema(BaseSchema):
+    name: str | None = None
+    effect_entries: Annotated[list[EffectCreateSchema], Field(min_length=1)] | None = (
+        None
+    )
