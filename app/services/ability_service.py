@@ -4,11 +4,40 @@ from app.exceptions import (
     ResourceNotFoundError,
 )
 from app.repositories.ability_repository import (
+    count_ability_db_models,
     get_ability_db_model_by_id,
     get_ability_db_model_by_name,
+    get_ability_db_models,
     update_ability_db_model,
 )
-from app.schemas.ability_schema import AbilitySchema
+from app.schemas.ability_schema import AbilityListSchema, AbilitySchema
+from app.schemas.common import NamedAPIResourceSchema
+from app.utils.helpers import build_pagination
+
+
+async def get_ability_list(
+    session, offset, limit, request, search=None
+) -> AbilityListSchema:
+    abilities = await get_ability_db_models(session, offset, limit, search)
+    if not abilities:
+        return AbilityListSchema(count=0, next=None, previous=None, results=[])
+
+    total = await count_ability_db_models(session, search)
+    results = [
+        NamedAPIResourceSchema.from_model(
+            a, request.app.url_path_for("get_ability", id_or_name=a.id)
+        )
+        for a in abilities
+    ]
+    list_path = request.app.url_path_for("list_abilities")
+    next_url, previous_url = build_pagination(list_path, total, offset, limit, search)
+
+    return AbilityListSchema(
+        count=total,
+        next=next_url,
+        previous=previous_url,
+        results=results,
+    )
 
 
 async def get_ability(session, id_or_name) -> AbilitySchema:
