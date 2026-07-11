@@ -5,12 +5,18 @@ from app.exceptions import (
 )
 from app.repositories.ability_repository import (
     count_ability_db_models,
+    create_ability_db_model,
+    delete_ability_db_model,
     get_ability_db_model_by_id,
     get_ability_db_model_by_name,
     get_ability_db_models,
     update_ability_db_model,
 )
-from app.schemas.ability_schema import AbilityListSchema, AbilitySchema
+from app.schemas.ability_schema import (
+    AbilityCreateSchema,
+    AbilityListSchema,
+    AbilitySchema,
+)
 from app.schemas.common import NamedAPIResourceSchema
 from app.utils.helpers import build_pagination
 
@@ -38,6 +44,22 @@ async def get_ability_list(
         previous=previous_url,
         results=results,
     )
+
+
+async def create_ability(session, data: AbilityCreateSchema) -> AbilitySchema:
+    if await get_ability_db_model_by_name(session, data.name):
+        raise ResourceConflictError(f"Ability '{data.name}' already exists")
+
+    effect_entries = [e.model_dump() for e in data.effect_entries]
+    ability = await create_ability_db_model(session, data.name, effect_entries)
+    return AbilitySchema.from_orm_obj(ability)
+
+
+async def delete_ability(session, ability_id: int) -> None:
+    if await get_ability_db_model_by_id(session, ability_id) is None:
+        raise ResourceNotFoundError("Ability not found")
+
+    await delete_ability_db_model(session, ability_id)
 
 
 async def get_ability(session, id_or_name) -> AbilitySchema:

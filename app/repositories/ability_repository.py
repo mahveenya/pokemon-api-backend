@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 
 from app.db.models.ability_model import AbilityModel
 from app.db.models.pokemon_ability_model import PokemonAbilityModel
@@ -42,6 +42,28 @@ async def get_ability_db_models_by_pokemon_id(
     )
     result = await session.execute(stmt)
     return result.scalars().all()
+
+
+async def create_ability_db_model(session, name, effect_entries) -> AbilityModel:
+    ability = AbilityModel(name=name, effect_entries=effect_entries)
+    session.add(ability)
+    try:
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    await session.refresh(ability)
+    return ability
+
+
+async def delete_ability_db_model(session, ability_id) -> None:
+    stmt = delete(AbilityModel).where(AbilityModel.id == ability_id)
+    await session.execute(stmt)
+    try:
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
 
 
 async def update_ability_db_model(session, ability_id, values) -> None:

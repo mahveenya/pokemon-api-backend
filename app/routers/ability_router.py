@@ -1,14 +1,20 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, status
 
 from app.constants import Endpoints
 from app.db.session import get_session
 from app.schemas.ability_schema import (
+    AbilityCreateSchema,
     AbilityListSchema,
     AbilitySchema,
     AbilityUpdateSchema,
 )
+from app.services.ability_service import (
+    create_ability,
+    delete_ability,
+    get_ability_list,
+    update_ability,
+)
 from app.services.ability_service import get_ability as get_ability_service
-from app.services.ability_service import get_ability_list, update_ability
 
 router = APIRouter(prefix=Endpoints.ABILITY_BASE, tags=["ability"])
 
@@ -22,6 +28,28 @@ async def list_abilities(
     session=Depends(get_session),
 ) -> AbilityListSchema:
     return await get_ability_list(session, offset, limit, request, search)
+
+
+@router.post(
+    "",
+    response_model=AbilitySchema,
+    status_code=status.HTTP_201_CREATED,
+    responses={409: {"description": "Ability name already exists"}},
+)
+async def create_ability_endpoint(
+    payload: AbilityCreateSchema,
+    session=Depends(get_session),
+) -> AbilitySchema:
+    return await create_ability(session, payload)
+
+
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"description": "Ability not found"}},
+)
+async def delete_ability_endpoint(id: int, session=Depends(get_session)) -> None:
+    await delete_ability(session, id)
 
 
 @router.get(
