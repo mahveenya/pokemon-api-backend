@@ -1,0 +1,101 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["pokemon", "requests"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Pokemon API — Requests",
+  "uid": "pokemon-api-requests",
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total requests",
+      "description": "Completed requests in the selected time range (health-check probe excluded).",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short" },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "queryType": "stats",
+          "expr": "service:\"pokemon-backend\" event:\"request.completed\" NOT route:\"/api/v1/health\" | stats count() requests"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Requests per endpoint over time",
+      "description": "Completed requests bucketed over time, one series per route template.",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "showPoints": "auto", "stacking": { "mode": "none" } },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "queryType": "statsRange",
+          "expr": "service:\"pokemon-backend\" event:\"request.completed\" NOT route:\"/api/v1/health\" | stats by (route) count() requests",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Requests by endpoint",
+      "description": "Total completed requests per route template in the selected range.",
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "filterable": true }, "unit": "short" },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "requests", "desc": true }]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+          "queryType": "stats",
+          "expr": "service:\"pokemon-backend\" event:\"request.completed\" NOT route:\"/api/v1/health\" | stats by (route) count() requests | sort by (requests desc)",
+          "format": "table"
+        }
+      ]
+    }
+  ]
+}

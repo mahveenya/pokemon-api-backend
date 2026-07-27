@@ -1,6 +1,5 @@
-import os
-
-DATABASE_URL = os.environ["DATABASE_URL"]
+SERVICE_NAME = "pokemon-backend"
+REQUEST_ID_HEADER = "X-Request-ID"
 
 
 class Endpoints:

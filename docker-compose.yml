@@ -32,6 +32,7 @@ services:
       start_period: 15s
     environment:
       DATABASE_URL: postgresql+asyncpg://admin:admin@db:5432/pokemon_db
+      SERVICE_NAME: pokemon-backend
     ports:
       - "8000:8000"
     volumes:
@@ -49,5 +50,43 @@ services:
     environment:
       PGPASSWORD: admin
 
+  victorialogs:
+    container_name: victorialogs
+    image: victoriametrics/victoria-logs:v1.0.0-victorialogs
+    command:
+      - "-storageDataPath=/victoria-logs-data"
+      - "-retentionPeriod=30d"
+    ports:
+      - "9428:9428"
+    volumes:
+      - victorialogs_data:/victoria-logs-data
+
+  vector:
+    container_name: vector
+    image: timberio/vector:0.44.0-debian
+    depends_on:
+      - victorialogs
+    volumes:
+      - ./observability/vector/vector.yaml:/etc/vector/vector.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.4.0
+    depends_on:
+      - victorialogs
+    ports:
+      - "3000:3000"
+    environment:
+      GF_INSTALL_PLUGINS: victoriametrics-logs-datasource
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
 volumes:
   postgres_data:
+  victorialogs_data:
+  grafana_data:

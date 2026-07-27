@@ -102,16 +102,37 @@ make rebuild
 
 ## Running with Docker
 
-This repository includes a Docker Compose stack that starts the database and backend together.
+This repository includes a Docker Compose stack that starts the database, backend, and the
+logging observability stack together.
 
 - `db` starts PostgreSQL 18
 - `db-seed` loads `app/db/seed.sql` into the database after startup
 - `backend` builds the FastAPI app image and starts the service on port `8000`
+- `victorialogs` stores logs and serves LogsQL queries on port `9428`
+- `vector` tails the container logs (Docker socket) and ships them to VictoriaLogs
+- `grafana` serves dashboards on port `3000`
 
 The backend container entrypoint is `scripts/entrypoint.sh`, which runs:
 
 1. `alembic upgrade head`
-2. `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+2. `uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log`
+
+## Observability (logs)
+
+The backend emits one structured JSON log line per request phase — `request.received` and
+`request.completed` — correlated by a `tracking_id`. The frontend originates the id and sends
+it as the `X-Request-ID` header; the backend honors an inbound id (or mints a UUID when
+absent) and echoes it back in the `X-Request-ID` response header.
+
+- **VictoriaLogs UI / query:** `http://localhost:9428/select/vmui`
+  (e.g. LogsQL `service:"pokemon-backend" event:"request.completed"`).
+- **Grafana:** `http://localhost:3000` (anonymous admin) → dashboard **Pokemon API — Requests**
+  shows total request count and a per-endpoint breakdown (grouped by route template; the
+  `/api/v1/health` probe is excluded).
+
+Logs run at DEBUG and every request/response body plus all SQL statements are logged (each
+SQL line carries the request's `tracking_id`) — no redaction or size caps. Relevant backend env vars (in `docker-compose.yml`): `SERVICE_NAME` (default
+`pokemon-backend`) and `REQUEST_ID_HEADER` (default `X-Request-ID`).
 
 ## API Endpoints
 
