@@ -2,10 +2,15 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.exceptions import AppError
+from app.logging_config import configure_logging
+from app.middleware import access_log
 from app.routers.ability_router import router as ability_router
 from app.routers.pokemon_router import router as pokemon_router
 
+configure_logging()
+
 app = FastAPI()
+app.middleware("http")(access_log)
 app.include_router(pokemon_router)
 app.include_router(ability_router)
 

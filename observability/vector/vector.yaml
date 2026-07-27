@@ -1,0 +1,53 @@
+sources:
+  docker:
+    type: docker_logs
+    include_labels:
+      - "com.docker.compose.project=pokemon-api"
+
+transforms:
+  parse:
+    type: remap
+    inputs:
+      - docker
+    source: |
+      # Our app logs are JSON per line; merge those fields onto the event so
+      # `route`, `status_code`, `payload`, `tracking_id`, etc. become queryable.
+      # Non-JSON container lines (uvicorn/db startup) keep the raw message.
+      parsed, err = parse_json(.message)
+      if err == null && is_object(parsed) {
+        . = merge(., object!(parsed))
+      }
+      .service = .service || .container_name
+
+      # Drop repetitive Docker metadata that bloats every entry.
+      del(.label)
+      del(.image)
+      del(.container_id)
+      del(.container_created_at)
+      del(.host)
+      del(.source_type)
+      del(.stream)
+
+  app_logs:
+    type: filter
+    inputs:
+      - parse
+    condition: |
+      !includes(["grafana", "vector", "victorialogs"], .container_name) &&
+      .path != "/api/v1/health"
+
+sinks:
+  vlogs:
+    type: elasticsearch
+    inputs:
+      - app_logs
+    endpoints:
+      - "http://victorialogs:9428/insert/elasticsearch/"
+    api_version: "v8"
+    compression: gzip
+    healthcheck:
+      enabled: false
+    query:
+      _msg_field: message
+      _time_field: timestamp
+      _stream_fields: service,container_name
